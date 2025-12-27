@@ -46,10 +46,18 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
+            -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2);
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
-        .member:hover {
+        .member:hover, .member:active, .member:focus {
             background: rgba(255, 255, 255, 0.25);
             transform: translateY(-3px);
+        }
+        .member:active {
+            transform: translateY(-1px);
         }
         .leader {
             background: rgba(255, 215, 0, 0.3);
@@ -421,28 +429,28 @@
         <div class="group-info">
             <h3>形势与政策课程 - 第二小组</h3>
             <div class="group-members">
-                <div class="member leader" onclick="showMemberInfo('凌智柯')">
+                <div class="member leader" onclick="showMemberInfo('凌智柯')" ontouchstart="">
                     <strong>组长：凌智柯</strong>
                 </div>
-                <div class="member" onclick="showMemberInfo('滕永簿')">
+                <div class="member" onclick="showMemberInfo('滕永簿')" ontouchstart="">
                     滕永簿
                 </div>
-                <div class="member" onclick="showMemberInfo('杨浩')">
+                <div class="member" onclick="showMemberInfo('杨浩')" ontouchstart="">
                     杨浩
                 </div>
-                <div class="member" onclick="showMemberInfo('马智恒')">
+                <div class="member" onclick="showMemberInfo('马智恒')" ontouchstart="">
                     马智恒
                 </div>
-                <div class="member" onclick="showMemberInfo('秦诚辉')">
+                <div class="member" onclick="showMemberInfo('秦诚辉')" ontouchstart="">
                     秦诚辉
                 </div>
-                <div class="member" onclick="showMemberInfo('徐家庆')">
+                <div class="member" onclick="showMemberInfo('徐家庆')" ontouchstart="">
                     徐家庆
                 </div>
-                <div class="member" onclick="showMemberInfo('尹书辉')">
+                <div class="member" onclick="showMemberInfo('尹书辉')" ontouchstart="">
                     尹书辉
                 </div>
-                <div class="member" onclick="showMemberInfo('潘明俊')">
+                <div class="member" onclick="showMemberInfo('潘明俊')" ontouchstart="">
                     潘明俊
                 </div>
             </div>
@@ -1332,14 +1340,19 @@
         }
 
         function showMemberInfo(name) {
+            console.log('显示成员信息:', name); // 调试日志
+            
             const modal = document.getElementById('memberModal');
             const modalContent = document.getElementById('modalContent');
             const member = memberData[name];
             
             if (!member) {
                 console.error('未找到成员信息：' + name);
+                alert('未找到成员信息：' + name); // 临时调试
                 return;
             }
+            
+            console.log('找到成员数据:', member); // 调试日志
             
             modalContent.innerHTML = `
                 <div style="text-align: center; margin-bottom: 25px;">
@@ -1376,6 +1389,7 @@
             
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
+            console.log('弹窗已显示'); // 调试日志
         }
 
         function closeMemberModal() {
@@ -1399,10 +1413,40 @@
                 firstBtn.classList.add('active');
             }
             
+            // 为所有成员元素添加移动端事件处理
+            const members = document.querySelectorAll('.member');
+            members.forEach(member => {
+                // 添加触摸事件处理
+                member.addEventListener('touchstart', function(e) {
+                    e.preventDefault(); // 防止默认行为
+                    this.style.background = 'rgba(255, 255, 255, 0.35)';
+                }, { passive: false });
+                
+                member.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    this.style.background = 'rgba(255, 255, 255, 0.15)';
+                    
+                    // 获取成员名字并触发弹窗
+                    const memberName = this.textContent.replace('组长：', '').trim();
+                    showMemberInfo(memberName);
+                }, { passive: false });
+                
+                member.addEventListener('touchcancel', function(e) {
+                    this.style.background = 'rgba(255, 255, 255, 0.15)';
+                });
+            });
+            
             // 点击弹窗背景关闭弹窗
             const modal = document.getElementById('memberModal');
             if (modal) {
                 modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeMemberModal();
+                    }
+                });
+                
+                // 添加触摸事件处理弹窗关闭
+                modal.addEventListener('touchstart', function(e) {
                     if (e.target === this) {
                         closeMemberModal();
                     }
