@@ -63,6 +63,12 @@
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+        }
+        .member:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
         .leader {
             background: rgba(255, 215, 0, 0.3);
@@ -179,6 +185,126 @@
             .nav-tabs { flex-direction: column; align-items: center; }
             .tab-btn { width: 100%; max-width: 300px; }
             .content-grid { grid-template-columns: 1fr; }
+            
+            /* 手机版导航栏不固定 */
+            .nav-container {
+                position: relative;
+                top: auto;
+            }
+            
+            /* 手机版优化 */
+            .container {
+                padding: 0 10px;
+            }
+            
+            .tab-content {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .group-members {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 10px;
+            }
+            
+            .member {
+                padding: 12px;
+                font-size: 14px;
+            }
+        }
+        
+        /* 成员详情弹窗 */
+        .member-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .member-modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .modal-close:hover {
+            color: #c31432;
+        }
+        
+        .member-name {
+            color: #c31432;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .member-role {
+            background: linear-gradient(135deg, #c31432 0%, #240b36 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .work-section {
+            margin-bottom: 20px;
+        }
+        
+        .work-title {
+            color: #c31432;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #c31432;
+            padding-bottom: 5px;
+        }
+        
+        .work-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .work-item {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #c31432;
         }
     </style>
 </head>
@@ -190,17 +316,17 @@
         <div class="group-info">
             <h3><i class="fas fa-users"></i> 形势与政策课程 - 第二小组</h3>
             <div class="group-members">
-                <div class="member leader">
+                <div class="member leader" onclick="showMemberInfo('凌智柯', 'leader')">
                     <i class="fas fa-crown"></i><br>
                     <strong>组长：凌智柯</strong>
                 </div>
-                <div class="member">滕永簿</div>
-                <div class="member">杨浩</div>
-                <div class="member">马智恒</div>
-                <div class="member">秦诚辉</div>
-                <div class="member">徐家庆</div>
-                <div class="member">尹书辉</div>
-                <div class="member">潘明俊</div>
+                <div class="member" onclick="showMemberInfo('滕永簿', 'member')">滕永簿</div>
+                <div class="member" onclick="showMemberInfo('杨浩', 'member')">杨浩</div>
+                <div class="member" onclick="showMemberInfo('马智恒', 'member')">马智恒</div>
+                <div class="member" onclick="showMemberInfo('秦诚辉', 'member')">秦诚辉</div>
+                <div class="member" onclick="showMemberInfo('徐家庆', 'member')">徐家庆</div>
+                <div class="member" onclick="showMemberInfo('尹书辉', 'member')">尹书辉</div>
+                <div class="member" onclick="showMemberInfo('潘明俊', 'member')">潘明俊</div>
             </div>
         </div>
     </div>
@@ -708,7 +834,15 @@
         </div>
     </div>
 
-    <script>
+    <!-- 成员详情弹窗 -->
+    <div id="memberModal" class="member-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeMemberModal()">&times;</button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script></script>
         // 标签页切换功能
         function showTab(tabId) {
             // 隐藏所有标签页内容
@@ -725,12 +859,192 @@
             // 激活对应按钮
             event.target.classList.add('active');
             
-            // 滚动到顶部
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+            // 手机版滚动到内容区域
+            if (window.innerWidth <= 768) {
+                const container = document.querySelector('.container');
+                container.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            } else {
+                // 桌面版滚动到顶部
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
         }
+
+        // 成员信息数据
+        const memberData = {
+            '凌智柯': {
+                role: '项目组长',
+                responsibilities: [
+                    '项目整体规划与协调',
+                    '研究方向确定与任务分配',
+                    '团队管理与进度把控',
+                    '对外汇报与成果展示'
+                ],
+                contributions: [
+                    '制定项目研究框架',
+                    '撰写项目总体规划',
+                    '协调各模块内容整合',
+                    '负责最终成果汇总'
+                ]
+            },
+            '滕永簿': {
+                role: '政策研究员',
+                responsibilities: [
+                    'AI政策体系梳理',
+                    '政策文件收集整理',
+                    '政策发展脉络分析',
+                    '政策效果评估'
+                ],
+                contributions: [
+                    '完成政策体系模块内容',
+                    '收集整理50+政策文件',
+                    '绘制政策发展时间线',
+                    '分析政策实施效果'
+                ]
+            },
+            '杨浩': {
+                role: '战略分析师',
+                responsibilities: [
+                    '国家AI战略研究',
+                    '战略目标体系分析',
+                    '实施路径梳理',
+                    '战略效果评估'
+                ],
+                contributions: [
+                    '撰写国家战略模块',
+                    '分析三步走战略目标',
+                    '梳理重点任务清单',
+                    '评估战略实施进展'
+                ]
+            },
+            '马智恒': {
+                role: '国际关系研究员',
+                responsibilities: [
+                    '全球AI竞争格局分析',
+                    '中美AI竞争对比',
+                    '国际合作机制研究',
+                    '全球治理趋势分析'
+                ],
+                contributions: [
+                    '完成国际竞争模块',
+                    '对比分析中美欧AI策略',
+                    '研究国际合作案例',
+                    '分析全球治理趋势'
+                ]
+            },
+            '秦诚辉': {
+                role: '产业分析师',
+                responsibilities: [
+                    'AI产业发展现状调研',
+                    '企业案例收集分析',
+                    '产业生态研究',
+                    '市场数据统计'
+                ],
+                contributions: [
+                    '撰写发展概况模块',
+                    '收集产业发展数据',
+                    '分析领军企业案例',
+                    '绘制产业生态图谱'
+                ]
+            },
+            '徐家庆': {
+                role: '风险评估专员',
+                responsibilities: [
+                    'AI发展挑战识别',
+                    '风险因素分析',
+                    '应对策略研究',
+                    '安全治理建议'
+                ],
+                contributions: [
+                    '完成挑战与机遇模块',
+                    '识别主要风险点',
+                    '提出应对策略',
+                    '制定风险防范建议'
+                ]
+            },
+            '尹书辉': {
+                role: '趋势预测分析师',
+                responsibilities: [
+                    'AI未来发展趋势研判',
+                    '技术演进路径分析',
+                    '应用前景预测',
+                    '政策走向研究'
+                ],
+                contributions: [
+                    '撰写未来展望模块',
+                    '预测技术发展趋势',
+                    '分析应用前景',
+                    '研判政策发展方向'
+                ]
+            },
+            '潘明俊': {
+                role: '技术支持专员',
+                responsibilities: [
+                    '平台技术开发',
+                    '网站设计与优化',
+                    '数据可视化制作',
+                    '技术文档编写'
+                ],
+                contributions: [
+                    '开发分析平台网站',
+                    '设计用户交互界面',
+                    '制作数据统计图表',
+                    '优化移动端体验'
+                ]
+            }
+        };
+
+        // 显示成员信息
+        function showMemberInfo(name, type) {
+            const modal = document.getElementById('memberModal');
+            const modalContent = document.getElementById('modalContent');
+            const member = memberData[name];
+            
+            if (!member) return;
+            
+            const roleClass = type === 'leader' ? 'member-role' : 'member-role';
+            
+            modalContent.innerHTML = `
+                <div class="member-name">${name}</div>
+                <div class="${roleClass}">${member.role}</div>
+                
+                <div class="work-section">
+                    <div class="work-title">主要职责</div>
+                    <ul class="work-list">
+                        ${member.responsibilities.map(item => `<li class="work-item">${item}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                <div class="work-section">
+                    <div class="work-title">项目贡献</div>
+                    <ul class="work-list">
+                        ${member.contributions.map(item => `<li class="work-item">${item}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 关闭成员信息弹窗
+        function closeMemberModal() {
+            const modal = document.getElementById('memberModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // 点击弹窗外部关闭
+        document.getElementById('memberModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeMemberModal();
+            }
+        });
 
         // 页面加载完成后的初始化
         document.addEventListener('DOMContentLoaded', function() {
